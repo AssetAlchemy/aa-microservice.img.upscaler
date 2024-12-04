@@ -1,0 +1,193 @@
+asyncapi: 3.0.0
+defaultContentType: application/json
+
+info:
+  title: Microservice template for Python
+  version: 1.0.0
+  description: >
+    This microservice obtains the identifier of an asset that is in a storage, with this ID the microservice is in charge of retrieving the asset to make its processes and if it is necessary to upload a new asset with a new ID to be able to emit an event that there has been an update in the asset.
+  contact:
+    name: Support
+    url: https://nahuetomas.vercel.app
+    email: nahuetomas@outlook.com
+servers:
+  development:
+    host: localhost:5672
+    description: RabbitMQ broker for the development environment.
+    protocol: amqp
+    protocolVersion: 0-9-1
+  staging:
+    host: "{Staging RabbitMQ URL}:5672"
+    description: RabbitMQ broker for the staging environment.
+    protocol: amqp
+    protocolVersion: 0-9-1
+  production:
+    host: "{Production RabbitMQ URL}:5672"
+    description: RabbitMQ broker for the production environment.
+    protocol: amqp
+    protocolVersion: 0-9-1
+channels: 
+  assets.template:
+    address: assets.template.1
+    summary: >-
+      Template queue to receive assets as microservice.
+    messages:
+      receive_asset:
+        $ref: '#/components/messages/template_message'
+      receive_error:
+        $ref: '#/components/messages/error_template_message'
+    bindings:
+      amqp:
+        queue:
+          vhost: assets.template.1
+        is: queue
+  assets.processed:
+    address: assets.processed.1
+    summary: >-
+      Queue to send assets already proccessed by this microservice.
+    messages:
+      send_asset:
+        $ref: '#/components/messages/template_message'
+      send_error:
+        $ref: '#/components/messages/error_template_message'
+    bindings:
+      amqp:
+        queue:
+          vhost: assets.processed.1
+        is: queue
+operations:
+  receive_asset:
+    action: receive
+    channel:
+      $ref: '#/channels/assets.template'
+    messages:
+      - $ref: '#/channels/assets.template/messages/receive_asset'
+  receive_error:
+    action: receive
+    channel:
+      $ref: '#/channels/assets.template'
+    messages:
+      - $ref: '#/channels/assets.template/messages/receive_error'
+  send_asset:
+    action: send
+    channel:
+      $ref: '#/channels/assets.processed'
+    messages:
+      - $ref: '#/channels/assets.processed/messages/send_asset'
+  send_error:
+    action: send
+    channel:
+      $ref: '#/channels/assets.processed'
+    messages:
+      - $ref: '#/channels/assets.processed/messages/send_error'
+components:
+  messages:
+    template_message:
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          message_id:
+            type: string
+            description: Message unique ID.
+            examples:
+              - 22222a79-e599-444d-a6ce-51ff593f8317
+          correlation_id:
+            type: string
+            description: ID to trace events.
+            examples:
+              - 11111a79-e599-444d-a6ce-51ff593f8317
+          app_id:
+            type: string
+            description: Application source.
+            enum:
+              - aa-microservice.template-python
+            examples:
+              - aa-microservice.template-python
+          content_type:
+            type: string
+            description: Content type, in this case is always `application/json`.
+      payload:
+        $ref: '#/components/schemas/template_payload'
+    error_template_message:
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          message_id:
+            type: string
+            description: Message unique ID.
+            examples:
+              - 22222a79-e599-444d-a6ce-51ff593f8317
+          correlation_id:
+            type: string
+            description: ID to trace events.
+            examples:
+              - 11111a79-e599-444d-a6ce-51ff593f8317
+          app_id:
+            type: string
+            description: Application source.
+            enum:
+              - aa-microservice.template-python
+            examples:
+              - aa-microservice.template-python
+          content_type:
+            type: string
+            description: Content type, in this case is always `application/json`.
+      payload:
+        $ref: '#/components/schemas/error_template_payload'
+  schemas:
+    template_payload:
+      type: object
+      properties:
+        asset_id:
+          type: string
+          description: Asset id from storage.
+          examples:
+            - 609d0993906429612483cfb1
+        status:
+          type: string
+          enum:
+            - normal
+            - error
+          description: Message status.
+          examples:
+            - normal
+        source:
+          type: string
+          enum:
+            - aa-microservice.template-python
+          description: Source service.
+          examples:
+            - aa-microservice.template-python
+        options:
+          type: object
+          description: Optional options to apply transformations depending of microservice.
+          examples:
+            - { "width": 1000, "height": 1000, "fit": "cover"  }
+    error_template_payload:
+      type: object
+      properties:
+        asset_id:
+          type: string
+          description: Asset id from storage.
+          examples:
+            - 609d0993906429612483cfb1
+        status:
+          type: string
+          enum:
+            - normal
+            - error
+          description: Message status.
+          examples:
+            - error
+        error:
+          type: string
+          description: Error message description.
+          examples:
+            - "Message type not found"
+        options:
+          type: object
+          description: Optional options to apply transformations depending of microservice.
+          examples:
+            - { "width": 1000, "height": 1000, "fit": "cover"  }

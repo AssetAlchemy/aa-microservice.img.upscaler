@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+    mongo:
+        image: mongo
+        env_file:
+            - .env
+        ports:
+            - "${MONGO_PORT}:${MONGO_PORT}"
+        volumes:
+            - ./db/data:/var/lib/mysql:rw
+            - ./db/storage.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    mongo-express:
+        image: mongo-express
+        environment:
+            - ME_CONFIG_MONGODB_SERVER=mongo
+            - ME_CONFIG_MONGODB_PORT=${MONGO_PORT}
+            - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+            - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+            - ME_CONFIG_BASICAUTH_USERNAME=dev
+            - ME_CONFIG_BASICAUTH_PASSWORD=dev
+        depends_on:
+            - mongo
+        ports:
+            - "8888:8081"
+    crud-mongo-gridfs:
+        image: ntrodriguez/crud-mongo-gridfs:2.0
+        ports:
+            - "5000:3000"
+        environment:
+            - MONGO_URI=mongodb://mongo:${MONGO_PORT}/${MONGO_DB_NAME}
+            - PORT=3000
+        depends_on:
+            - mongo
+    rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+            - "5672:5672" # Comunication port
+            - "15672:15672" # Web interface port
+        environment:
+            RABBITMQ_DEFAULT_USER: guest
+            RABBITMQ_DEFAULT_PASS: guest
+
+    aa-microservice-template-python:
+        container_name: aa-microservice-template-python
+        env_file:
+            - .env
+        build:
+            context: .
+            target: dev
+            dockerfile: Dockerfile
+        depends_on:
+            - mongo

@@ -1,0 +1,24 @@
+[MASTER]
+# Initializes the project directory
+init-hook='import sys; sys.path.append("app")'
+
+# Colorized output format for better readability
+output-format=colorized
+reports=no
+
+[MESSAGES CONTROL]
+# Enables all messages except those related to docstrings
+disable=missing-module-docstring, missing-class-docstring, missing-function-docstring
+disable=broad-except
+
+[FORMAT]
+# Maximum line length
+max-line-length=120
+
+[DESIGN]
+# Maximum number of arguments for functions
+max-args=5
+
+[REPORTS]
+# Disables the full report
+reports=no
