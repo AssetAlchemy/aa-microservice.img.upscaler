@@ -13,8 +13,7 @@ class SaveFileCommand:
             file = File(filename=filename, content=content)
             saved_file = self.file_repository.add(file)
             return str(saved_file.file_id)
-        except Exception as e:
-            print(e)
+        except Exception:
             raise Exception("Error to save file")
 
 

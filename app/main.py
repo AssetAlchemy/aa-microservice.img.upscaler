@@ -1,5 +1,6 @@
 import sys
 import os
+from numbers import Number
 
 from shared.config import Config
 from files.infrastructure.mongo_file_repository import MongoFileRepository
@@ -7,6 +8,10 @@ from files.application.file_commands import GetFileCommand, SaveFileCommand
 from messages.infrastructure.rabbitmq_messages_service import (
     RabbitMQMessagingService,
 )
+from upscaler.infrastructure.py_real_esrgan_upscaler_service import (
+    PyRealEsrganUpscalerService,
+)
+from upscaler.application.upscaler_commands import Upscale2x, Upscale4x
 
 
 def main():
@@ -19,19 +24,34 @@ def main():
         port=config.rabbitmq_port,
         source=config.source,
     )
+    upscaler_service = PyRealEsrganUpscalerService()
+
+    upscaler = {
+        "2": Upscale2x(upscaler_service).execute,
+        "4": Upscale4x(upscaler_service).execute,
+    }
+    get_file = GetFileCommand(file_repository).execute
+    save_file = SaveFileCommand(file_repository).execute
 
     def process_message(message, properties):
         try:
             asset_id = message.get("asset_id")
-            file = GetFileCommand(file_repository).execute(asset_id)
+            file = get_file(asset_id)
+            options = message.get("options")
 
+            # set default scale if there is no options
+            if not isinstance(options, dict):
+                options = {"scale": "2"}
+
+            fn = upscaler.get(options.get("scale"))
+
+            # validations
             if not file:
                 raise Exception(f"File with id: '{asset_id}' was not found")
+            if not fn:
+                raise Exception(f"You should pass an scale 2, 3 or 4")
 
-            new_asset_id = SaveFileCommand(file_repository).execute(
-                filename=file.filename, content=file.content
-            )
-
+            new_asset_id = save_file(filename=file.filename, content=fn(file.content))
             messages_service.publish(
                 {
                     "asset_id": new_asset_id,

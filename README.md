@@ -1,7 +1,5 @@
-# AssetAlchemy - Microservice template for python
-This is a template repo for all of the python based microservices that will be using "AssetAlchemy".
-
-This repo is a template for the following services to work properly:
+# AssetAlchemy - Image upscaler microservice
+This repo needs the following services to work properly:
 - RabbitMQ: to receive and send events
 - MongoDB: to store and read asset files
 
@@ -64,7 +62,7 @@ Note: It is the developer's responsibility to keep the `requeriments.txt' file a
 
 # Development usage:
 In our `docker-compose.yml` we will find some services that will help us with development:
-- aa-microservice-template-python: This is our microservice where we will write the code. 
+- aa-microservice-img-upscaler: This is our microservice where we will write the code. 
 - mongo: The database where the files will be stored.
 - mongo-express: Database administration panel. Works on http://localhost:8888 (default user & passord is `dev`).
 - crud-mongo-gridfs: Database CRUD for files. Working on http://localhost:5000/
@@ -73,7 +71,7 @@ In our `docker-compose.yml` we will find some services that will help us with de
 ![Devcontainer services](devcontainer.png)
 
 ## How do I receive messages in the microservice?
-By default, the microservice listens for messages on the `assets.template.1` queue. If we want to test it we can send a message through the rabbitmq admin panel, for this we should go to http://localhost:15672/#/queues/%2F/assets.template.1 (if you are using a different queue please change the last part of the link) and go to the "Publish message" section, here you can publish any message you want.
+By default, the microservice listens for messages on the `assets.img.upscaler.1` queue. If we want to test it we can send a message through the rabbitmq admin panel, for this we should go to http://localhost:15672/#/queues/%2F/assets.img.upscaler.1 (if you are using a different queue please change the last part of the link) and go to the "Publish message" section, here you can publish any message you want.
 
 In the project repo there is an `asyncapi.yaml` file which explains which format messages should follow. In the devcontainer there is an extension to have a nice preview of `asyncapi` files (asyncapi.asyncapi-preview).
 

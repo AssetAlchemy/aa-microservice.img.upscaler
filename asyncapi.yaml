@@ -2,7 +2,7 @@ asyncapi: 3.0.0
 defaultContentType: application/json
 
 info:
-  title: Microservice template for Python
+  title: Image upscaler microservice
   version: 1.0.0
   description: >
     This microservice obtains the identifier of an asset that is in a storage, with this ID the microservice is in charge of retrieving the asset to make its processes and if it is necessary to upload a new asset with a new ID to be able to emit an event that there has been an update in the asset.
@@ -27,10 +27,10 @@ servers:
     protocol: amqp
     protocolVersion: 0-9-1
 channels: 
-  assets.template:
-    address: assets.template.1
+  assets.img.upscaler.1:
+    address: assets.img.upscaler.1
     summary: >-
-      Template queue to receive assets as microservice.
+      Queue to receive assets as microservice.
     messages:
       receive_asset:
         $ref: '#/components/messages/template_message'
@@ -39,9 +39,9 @@ channels:
     bindings:
       amqp:
         queue:
-          vhost: assets.template.1
+          vhost: assets.img.upscaler.1
         is: queue
-  assets.processed:
+  assets.processed.1:
     address: assets.processed.1
     summary: >-
       Queue to send assets already proccessed by this microservice.
@@ -59,27 +59,27 @@ operations:
   receive_asset:
     action: receive
     channel:
-      $ref: '#/channels/assets.template'
+      $ref: '#/channels/assets.img.upscaler.1'
     messages:
-      - $ref: '#/channels/assets.template/messages/receive_asset'
+      - $ref: '#/channels/assets.img.upscaler.1/messages/receive_asset'
   receive_error:
     action: receive
     channel:
-      $ref: '#/channels/assets.template'
+      $ref: '#/channels/assets.img.upscaler.1'
     messages:
-      - $ref: '#/channels/assets.template/messages/receive_error'
+      - $ref: '#/channels/assets.img.upscaler.1/messages/receive_error'
   send_asset:
     action: send
     channel:
-      $ref: '#/channels/assets.processed'
+      $ref: '#/channels/assets.processed.1'
     messages:
-      - $ref: '#/channels/assets.processed/messages/send_asset'
+      - $ref: '#/channels/assets.processed.1/messages/send_asset'
   send_error:
     action: send
     channel:
-      $ref: '#/channels/assets.processed'
+      $ref: '#/channels/assets.processed.1'
     messages:
-      - $ref: '#/channels/assets.processed/messages/send_error'
+      - $ref: '#/channels/assets.processed.1/messages/send_error'
 components:
   messages:
     template_message:
@@ -101,9 +101,9 @@ components:
             type: string
             description: Application source.
             enum:
-              - aa-microservice.template-python
+              - aa-microservice.img.upscaler
             examples:
-              - aa-microservice.template-python
+              - aa-microservice.img.upscaler
           content_type:
             type: string
             description: Content type, in this case is always `application/json`.
@@ -128,9 +128,9 @@ components:
             type: string
             description: Application source.
             enum:
-              - aa-microservice.template-python
+              - aa-microservice.img.upscaler
             examples:
-              - aa-microservice.template-python
+              - aa-microservice.img.upscaler
           content_type:
             type: string
             description: Content type, in this case is always `application/json`.
@@ -153,13 +153,6 @@ components:
           description: Message status.
           examples:
             - normal
-        source:
-          type: string
-          enum:
-            - aa-microservice.template-python
-          description: Source service.
-          examples:
-            - aa-microservice.template-python
         options:
           type: object
           description: Optional options to apply transformations depending of microservice.

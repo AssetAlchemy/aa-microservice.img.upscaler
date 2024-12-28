@@ -40,9 +40,8 @@ services:
         environment:
             RABBITMQ_DEFAULT_USER: guest
             RABBITMQ_DEFAULT_PASS: guest
-
-    aa-microservice-template-python:
-        container_name: aa-microservice-template-python
+    aa-microservice-img-upscaler:
+        container_name: aa-microservice-img-upscaler
         env_file:
             - .env
         build:
